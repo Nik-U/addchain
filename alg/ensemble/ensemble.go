@@ -34,6 +34,8 @@ func Ensemble() []alg.ChainAlgorithm {
 	decomposers := []dict.Decomposer{}
 	for k := uint(4); k <= 128; k *= 2 {
 		decomposers = append(decomposers, dict.SlidingWindow{K: k})
+		decomposers = append(decomposers, dict.SlidingWindow{K: k, S: true})
+		decomposers = append(decomposers, dict.SlidingWindow{K: k, Z: k / 2, S: true})
 	}
 
 	decomposers = append(decomposers, dict.RunLength{T: 0})
@@ -42,9 +44,19 @@ func Ensemble() []alg.ChainAlgorithm {
 	}
 
 	for k := uint(2); k <= 8; k++ {
-		decomposers = append(decomposers, dict.Hybrid{K: k, T: 0})
+		decomposers = append(decomposers, dict.Hybrid{K: k})
+		decomposers = append(decomposers, dict.Hybrid{K: k, S: true})
+		decomposers = append(decomposers, dict.Hybrid{K: k, Z: k / 2, S: true})
 		for t := uint(16); t <= 64; t *= 2 {
-			decomposers = append(decomposers, dict.Hybrid{K: k, T: t})
+			decomposers = append(decomposers, dict.Hybrid{T: t, K: k})
+			decomposers = append(decomposers, dict.Hybrid{T: t, K: k, Z: k / 2, S: true})
+		}
+	}
+
+	for k := uint(10); k <= 20; k += 2 {
+		for ti := uint(0); ti <= 10; ti += 2 {
+			t := k + ti
+			decomposers = append(decomposers, dict.Hybrid{T: t, K: k, Z: k / 2, S: true})
 		}
 	}
 

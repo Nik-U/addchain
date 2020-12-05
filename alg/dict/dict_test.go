@@ -23,14 +23,20 @@ func TestDecomposersRandom(t *testing.T) {
 		SlidingWindow{K: 2},
 		SlidingWindow{K: 7},
 		SlidingWindow{K: 12},
+		SlidingWindow{K: 7, Z: 3},
+		SlidingWindow{K: 7, S: true},
+		SlidingWindow{K: 7, Z: 3, S: true},
 
 		RunLength{T: 0},
 		RunLength{T: 1},
 		RunLength{T: 3},
 		RunLength{T: 7},
 
-		Hybrid{K: 4, T: 7},
-		Hybrid{K: 3, T: 0},
+		Hybrid{T: 7, K: 4},
+		Hybrid{T: 0, K: 3},
+		Hybrid{T: 7, K: 4, S: true},
+		Hybrid{T: 7, K: 4, Z: 3},
+		Hybrid{T: 7, K: 4, Z: 3, S: true},
 	}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, d := range ds {
@@ -63,16 +69,74 @@ func TestFixedWindow(t *testing.T) {
 }
 
 func TestSlidingWindow(t *testing.T) {
-	n := big.NewInt(0xf143)
-	f := SlidingWindow{K: 4}
-	got := f.Decompose(n)
-	expect := Sum{
-		{D: big.NewInt(0x3), E: 0},
-		{D: big.NewInt(0x5), E: 6},
-		{D: big.NewInt(0xf), E: 12},
+	cases := []struct {
+		K      uint
+		Z      uint
+		S      bool
+		X      int64
+		Expect Sum
+	}{
+		{
+			K: 4,
+			X: 0xf143,
+			Expect: Sum{
+				{D: big.NewInt(0x3), E: 0},
+				{D: big.NewInt(0x5), E: 6},
+				{D: big.NewInt(0xf), E: 12},
+			},
+		},
+		{
+			K: 4,
+			X: 0xf90dc,
+			Expect: Sum{
+				{D: big.NewInt(0x3), E: 2},
+				{D: big.NewInt(0xd), E: 4},
+				{D: big.NewInt(0x9), E: 12},
+				{D: big.NewInt(0xf), E: 16},
+			},
+		},
+		{
+			K: 4,
+			Z: 1,
+			X: 0xf90dc,
+			Expect: Sum{
+				{D: big.NewInt(0x3), E: 2},
+				{D: big.NewInt(0xd), E: 4},
+				{D: big.NewInt(0x1), E: 12},
+				{D: big.NewInt(0x1), E: 15},
+				{D: big.NewInt(0xf), E: 16},
+			},
+		},
+		{
+			K: 4,
+			S: true,
+			X: 0xf90dc,
+			Expect: Sum{
+				{D: big.NewInt(0x7), E: 2},
+				{D: big.NewInt(0x3), E: 6},
+				{D: big.NewInt(0x9), E: 12},
+				{D: big.NewInt(0xf), E: 16},
+			},
+		},
+		{
+			K: 4,
+			Z: 1,
+			S: true,
+			X: 0xf90dc,
+			Expect: Sum{
+				{D: big.NewInt(0x7), E: 2},
+				{D: big.NewInt(0x3), E: 6},
+				{D: big.NewInt(0x1), E: 12},
+				{D: big.NewInt(0x1), E: 15},
+				{D: big.NewInt(0xf), E: 16},
+			},
+		},
 	}
-	if !SumEquals(got, expect) {
-		t.Fatalf("got %v expect %v", got, expect)
+	for _, c := range cases {
+		d := SlidingWindow{K: c.K, Z: c.Z, S: c.S}
+		if got := d.Decompose(big.NewInt(c.X)); !SumEquals(got, c.Expect) {
+			t.Fatalf("Decompose(%#x) = %v; expect %v", c.X, got, c.Expect)
+		}
 	}
 }
 
@@ -133,7 +197,7 @@ func TestRunLength(t *testing.T) {
 
 func TestHybrid(t *testing.T) {
 	n := bigint.MustBinary("11111111_11111111_000_111_000000_1_0_111111_0_11_0")
-	f := Hybrid{K: 4, T: 8}
+	f := Hybrid{T: 8, K: 4}
 	got := f.Decompose(n)
 	expect := Sum{
 		{D: big.NewInt(0x3), E: 1},

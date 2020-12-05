@@ -98,12 +98,23 @@ func (w FixedWindow) Decompose(x *big.Int) Sum {
 
 // SlidingWindow breaks integers into k-bit windows, skipping runs of zeros
 // where possible. See [hehcc:exp] section 9.1.3 or [braueraddsubchains] section
-// 1.2.3.
+// 1.2.3. When Z > 0, at most Z zeroes can appear in a window. Z = 0 is treated
+// as Z = K. If S is true and a window is both maximum length and followed by a
+// one, then the window is shrunk to yield as many ones as possible to the
+// subsequent window.
 type SlidingWindow struct {
 	K uint // Window size.
+	Z uint // Max zeroes per window.
+	S bool // Shorten full-length windows containing zero and followed by one.
 }
 
-func (w SlidingWindow) String() string { return fmt.Sprintf("sliding_window(%d)", w.K) }
+func (w SlidingWindow) String() string {
+	s := "greedy"
+	if w.S {
+		s = "shorten"
+	}
+	return fmt.Sprintf("sliding_window(%d,%d,%s)", w.K, w.Z, s)
+}
 
 // Decompose represents x in base 2ᵏ.
 func (w SlidingWindow) Decompose(x *big.Int) Sum {
@@ -119,8 +130,30 @@ func (w SlidingWindow) Decompose(x *big.Int) Sum {
 			break
 		}
 
-		// Look down k positions.
-		l := max(h-int(w.K)+1, 0)
+		// Select a window of max length K with at most Z zeroes.
+		l := h
+		ll := max(h-int(w.K)+1, 0)
+		z := uint(0)
+		for {
+			l--
+			if l < ll {
+				break
+			}
+			if x.Bit(l) == 0 {
+				z++
+				if w.Z > 0 && z > w.Z { // Treat w.Z = 0 as w.K.
+					break
+				}
+			}
+		}
+		l++
+
+		// Yield window space if needed and requested.
+		if w.S && z > 0 && l > 0 && x.Bit(l-1) == 1 {
+			for x.Bit(l) == 1 {
+				l++
+			}
+		}
 
 		// Advance to the next 1.
 		for x.Bit(l) == 0 {
@@ -179,11 +212,17 @@ func (r RunLength) Decompose(x *big.Int) Sum {
 // Hybrid is a mix of the sliding window and run length decomposition methods,
 // similar to the "Hybrid Method" of [genshortchains] Section 3.3.
 type Hybrid struct {
-	K uint // Window size.
 	T uint // Maximal run length. Zero means no limit.
+
+	// SlidingWindow parameters:
+	K uint // Window size.
+	Z uint // Max zeroes per window.
+	S bool // Shorten full-length windows containing zero and followed by one.
 }
 
-func (h Hybrid) String() string { return fmt.Sprintf("hybrid(%d,%d)", h.K, h.T) }
+func (h Hybrid) String() string {
+	return fmt.Sprintf("hybrid(%d,%s)", h.T, SlidingWindow{K: h.K, Z: h.Z, S: h.S})
+}
 
 // Decompose breaks x into k-bit sliding windows or runs of 1s up to length T.
 func (h Hybrid) Decompose(x *big.Int) Sum {
@@ -226,7 +265,7 @@ func (h Hybrid) Decompose(x *big.Int) Sum {
 	}
 
 	// Process what remains with a sliding window.
-	w := SlidingWindow{K: h.K}
+	w := SlidingWindow{K: h.K, Z: h.Z, S: h.S}
 	rem := w.Decompose(y)
 
 	sum = append(sum, rem...)
