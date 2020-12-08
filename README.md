@@ -320,6 +320,20 @@ which frequently exhibit binary structure, such as those derived from
 
 > I have not seen this method discussed in the literature. Please help me find references to prior art if you know any.
 
+### Yacobi
+
+The [`alg/yacobi`](https://pkg.go.dev/github.com/mmcloughlin/addchain/alg/yacobi) package implements Yacobi's chain generation algorithm.
+This algorithm is a variation of Lempel-Ziv data compression.
+The exponent is scanned to generate a symbol table stored in a binary tree.
+The symbols are then moved into place by doubling.
+
+The Yacobi method is almost always outperformed by the more advanced algorithms.
+It is included for completeness.
+
+#### References
+
+* Yacobi, Y. Exponentiating Faster with Addition Chains. In Advances in Cryptology --- EUROCRYPT '90, pages 222--229. 1991. https://link.springer.com/content/pdf/10.1007/3-540-46877-3_20.pdf
+
 ### Optimization
 
 Close inspection of addition chains produced by other algorithms revealed

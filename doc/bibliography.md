@@ -25,4 +25,5 @@
 * Certicom Research. SEC 2: Recommended Elliptic Curve Domain Parameters, Version 2.0. Standards for Efficient Cryptography 2. 2010. https://safecurves.cr.yp.to/www.secg.org/sec2-v2.pdf
 * Jerome A. Solinas. Generalized Mersenne Primes. Technical Report CORR 99-39, Centre for Applied Cryptographic Research (CACR) at the University of Waterloo. 1999. http://cacr.uwaterloo.ca/techreports/1999/corr99-39.pdf
 * Stam, Martijn. Speeding up subgroup cryptosystems. PhD thesis, Technische Universiteit Eindhoven. 2003. https://cr.yp.to/bib/2003/stam-thesis.pdf
+* Yacobi, Y. Exponentiating Faster with Addition Chains. In Advances in Cryptology --- EUROCRYPT '90, pages 222--229. 1991. https://link.springer.com/content/pdf/10.1007/3-540-46877-3_20.pdf
 

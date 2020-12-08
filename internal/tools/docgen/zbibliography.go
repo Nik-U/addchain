@@ -158,4 +158,10 @@ var bibliography = []struct{
         Formatted: "Stam, Martijn. Speeding up subgroup cryptosystems. PhD thesis, Technische Universiteit Eindhoven. 2003. https://cr.yp.to/bib/2003/stam-thesis.pdf",
     },
 
+    {
+        CiteName:  "yacobi",
+        URL: "https://link.springer.com/content/pdf/10.1007/3-540-46877-3_20.pdf",
+        Formatted: "Yacobi, Y. Exponentiating Faster with Addition Chains. In Advances in Cryptology --- EUROCRYPT '90, pages 222--229. 1991. https://link.springer.com/content/pdf/10.1007/3-540-46877-3_20.pdf",
+    },
+
 }
